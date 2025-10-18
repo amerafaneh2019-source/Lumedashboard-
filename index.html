@@ -42,16 +42,23 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <script>
-        const firebaseConfig = {
-          apiKey: "AIzaSyAbwtVkRJcVIjy7Zf1K6EWgXueBZXJaSXo",
-          authDomain: "lumestore-52903.firebaseapp.com",
-          projectId: "lumestore-52903",
-          storageBucket: "lumestore-52903.firebasestorage.app",
-          messagingSenderId: "959648083875",
-          appId: "1:959648083875:web:26938a68fab05c76d63416",
-          measurementId: "G-2XQ6ZJ0CQN"
-        };
+        // ---  !!! ACTION REQUIRED !!! ---
+        // ---  !!! خطوة مطلوبة !!! ---
+        // PASTE the SAME firebaseConfig object from your store.html file here.
+        // It needs to be identical in both files to connect to the same database.
+        //
+        // الصق نفس كائن الإعدادات firebaseConfig من ملف store.html هنا
+        // يجب أن يكون متطابقاً في كلا الملفين للاتصال بنفس قاعدة البيانات
 
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_AUTH_DOMAIN",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_STORAGE_BUCKET",
+            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        
         // Initialize Firebase
         if (!firebase.apps.length) {
             firebase.initializeApp(firebaseConfig);
@@ -60,7 +67,7 @@
 
     <!-- Your entire React application -->
     <script type="text/babel">
-        const { useState, useEffect } = React;
+        const { useState, useEffect, useMemo } = React;
 
         // --- CONSTANTS ---
         const STATUS_STYLES = {
@@ -187,13 +194,20 @@
             );
         };
 
-        const OrderDetailModal = ({ order, onClose, onUpdateStatus }) => {
+        const OrderDetailModal = ({ order, onClose, onUpdateStatus, onDeleteOrder }) => {
             if (!order) return null;
 
             const handleUpdate = () => {
                 const newStatus = NEXT_STATUS[order.status];
                 if (newStatus) {
                     onUpdateStatus(order.id, newStatus);
+                    onClose();
+                }
+            };
+            
+            const handleDelete = () => {
+                if (window.confirm('هل أنت متأكد من حذف هذا الطلب؟ لا يمكن التراجع عن هذا الإجراء.')) {
+                    onDeleteOrder(order.id);
                 }
             };
 
@@ -237,11 +251,19 @@
                             </div>
                         </div>
 
-                        {NEXT_ACTION_TEXT[order.status] && (
-                            <div className="p-6 border-t border-gray-200 bg-gray-50 text-left">
+                        <div className="p-6 border-t border-gray-200 bg-gray-50 flex justify-between items-center">
+                            {NEXT_ACTION_TEXT[order.status] ? (
                                 <button onClick={handleUpdate} className="bg-brand-primary text-white font-bold py-3 px-8 rounded-lg text-md hover:bg-brand-secondary transition-all shadow-lg hover:shadow-xl transform hover:-translate-y-1">{NEXT_ACTION_TEXT[order.status]}</button>
-                            </div>
-                        )}
+                            ) : <div />}
+                            <button 
+                                onClick={handleDelete}
+                                className="flex items-center gap-2 bg-red-600 text-white font-bold py-3 px-6 rounded-lg text-md hover:bg-red-700 transition-all shadow hover:shadow-md"
+                                aria-label="حذف الطلب"
+                            >
+                                <TrashIcon className="w-5 h-5" />
+                                <span>حذف الطلب</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
             );
@@ -363,10 +385,20 @@
             const handleUpdateOrderStatus = (orderId, newStatus) => {
                 const db = firebase.firestore();
                 db.collection("LUME_ORDERS").doc(orderId).update({ status: newStatus })
-                    .then(() => {
-                        setSelectedOrder(prev => prev && prev.id === orderId ? { ...prev, status: newStatus } : prev);
-                    })
                     .catch(error => console.error("Error updating status: ", error));
+            };
+            
+            const handleDeleteOrder = (orderId) => {
+                const db = firebase.firestore();
+                db.collection("LUME_ORDERS").doc(orderId).delete()
+                    .then(() => {
+                        console.log("Order successfully deleted!");
+                        setSelectedOrder(null);
+                    })
+                    .catch(error => {
+                        console.error("Error removing order: ", error);
+                        alert("حدث خطأ أثناء حذف الطلب.");
+                    });
             };
 
             return (
@@ -387,6 +419,7 @@
                         order={selectedOrder}
                         onClose={() => setSelectedOrder(null)}
                         onUpdateStatus={handleUpdateOrderStatus}
+                        onDeleteOrder={handleDeleteOrder}
                     />
                     <AddOrderModal
                         isOpen={isAddOrderModalOpen}
