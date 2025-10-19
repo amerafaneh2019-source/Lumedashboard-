@@ -42,21 +42,14 @@
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-firestore.js"></script>
 
     <script>
-        // ---  !!! ACTION REQUIRED !!! ---
-        // ---  !!! خطوة مطلوبة !!! ---
-        // PASTE the SAME firebaseConfig object from your store.html file here.
-        // It needs to be identical in both files to connect to the same database.
-        //
-        // الصق نفس كائن الإعدادات firebaseConfig من ملف store.html هنا
-        // يجب أن يكون متطابقاً في كلا الملفين للاتصال بنفس قاعدة البيانات
-
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_AUTH_DOMAIN",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_STORAGE_BUCKET",
-            messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-            appId: "YOUR_APP_ID"
+          apiKey: "AIzaSyAbwtVkRJcVIjy7Zf1K6EWgXueBZXJaSXo",
+          authDomain: "lumestore-52903.firebaseapp.com",
+          projectId: "lumestore-52903",
+          storageBucket: "lumestore-52903.appspot.com",
+          messagingSenderId: "959648083875",
+          appId: "1:959648083875:web:26938a68fab05c76d63416",
+          measurementId: "G-2XQ6ZJ0CQN"
         };
         
         // Initialize Firebase
@@ -208,6 +201,7 @@
             const handleDelete = () => {
                 if (window.confirm('هل أنت متأكد من حذف هذا الطلب؟ لا يمكن التراجع عن هذا الإجراء.')) {
                     onDeleteOrder(order.id);
+                    onClose(); // <-- THIS IS THE FIX! Close modal immediately.
                 }
             };
 
@@ -393,7 +387,7 @@
                 db.collection("LUME_ORDERS").doc(orderId).delete()
                     .then(() => {
                         console.log("Order successfully deleted!");
-                        setSelectedOrder(null);
+                        // The modal is now closed by the component itself for better UX
                     })
                     .catch(error => {
                         console.error("Error removing order: ", error);
